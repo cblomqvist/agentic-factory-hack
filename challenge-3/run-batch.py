@@ -54,7 +54,8 @@ async def run_maintenance_scheduler_batch():
 
         # Show key output lines
         for line in output.split('\n'):
-            if any(marker in line for marker in ['✓', '✗', '===', 'Schedule ID:', 'Risk Score:']):
+            if any(marker in line for marker in ['✓', '✗', '===', 'Schedule ID:', 'Risk Score:']) or \
+                    any(marker in line.lower() for marker in ['telemetry', 'exporter']):
                 print(f"   {line.strip()}")
 
         if success:
@@ -87,7 +88,8 @@ async def run_parts_ordering_batch():
 
         # Show key output lines
         for line in output.split('\n'):
-            if any(marker in line for marker in ['✓', '✗', '===', 'Order ID:', 'Total Cost:']):
+            if any(marker in line for marker in ['✓', '✗', '===', 'Order ID:', 'Total Cost:']) or \
+                    any(marker in line.lower() for marker in ['telemetry', 'exporter']):
                 print(f"   {line.strip()}")
 
         if success:

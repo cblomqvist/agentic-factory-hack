@@ -278,6 +278,10 @@ Always respond in valid JSON format as requested."""
 async def main():
     """Main program"""
 
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    )
     print("=== Parts Ordering Agent ===\n")
 
     cosmos_endpoint = os.getenv("COSMOS_ENDPOINT")
@@ -285,23 +289,31 @@ async def main():
     database_name = os.getenv("COSMOS_DATABASE_NAME")
     foundry_project_endpoint = os.getenv("AI_FOUNDRY_PROJECT_ENDPOINT")
     deployment_name = os.getenv("MODEL_DEPLOYMENT_NAME", "gpt-5.4")
-    otel_exporter_endpoint = os.getenv(
-        "OTEL_EXPORTER_OTLP_ENDPOINT")
+    app_insights_connection_string = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
+    otel_exporter_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 
     if not all([cosmos_endpoint, cosmos_key, database_name, foundry_project_endpoint]):
         print("Error: Missing required environment variables.")
         print("Required: COSMOS_ENDPOINT, COSMOS_KEY, COSMOS_DATABASE_NAME, AI_FOUNDRY_PROJECT_ENDPOINT")
         return
 
-    if otel_exporter_endpoint:
-        configure_otel_providers()
-    else:
+    # Configure tracing before creating the agent. Prefer Azure Monitor when the
+    # Application Insights connection string is present; otherwise support OTLP
+    # endpoints for local collectors.
+    configure_otel_providers()
+    if app_insights_connection_string:
         configure_azure_monitor(
-            connection_string=os.getenv(
-                "APPLICATIONINSIGHTS_CONNECTION_STRING"),
-            resource=create_resource(),  # Uses OTEL_SERVICE_NAME, etc.
+            connection_string=app_insights_connection_string,
+            resource=create_resource(),
         )
         enable_instrumentation(enable_sensitive_data=True)
+        logger.info("Azure Monitor telemetry enabled for PartsOrderingAgent")
+    elif otel_exporter_endpoint:
+        logger.info("Using OTLP exporter for PartsOrderingAgent: %s", otel_exporter_endpoint)
+    else:
+        logger.warning(
+            "No telemetry exporter configured. Set APPLICATIONINSIGHTS_CONNECTION_STRING or OTEL_EXPORTER_OTLP_ENDPOINT to enable tracing."
+        )
 
     cosmos_service = CosmosDbService(
         cosmos_endpoint, cosmos_key, database_name)
