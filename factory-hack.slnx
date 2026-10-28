@@ -1,3 +1,6 @@
-﻿<Solution>
+<Solution>
+	<Folder Name="/challenge-2/">
+		<Project Path="challenge-2/RepairPlanner/RepairPlanner.csproj" />
+	</Folder>
 	<Project Path="challenge-4/agent-workflow/dotnetworkflow/FactoryWorkflow.csproj" />
 </Solution>
