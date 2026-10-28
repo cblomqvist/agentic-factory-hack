@@ -10,7 +10,13 @@ var cosmosEndpoint = GetRequiredEnvironmentVariable("COSMOS_ENDPOINT");
 var cosmosKey = GetRequiredEnvironmentVariable("COSMOS_KEY");
 var cosmosDatabaseName = GetRequiredEnvironmentVariable("COSMOS_DATABASE_NAME");
 
-using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+using var loggerFactory = LoggerFactory.Create(builder =>
+    builder.AddSimpleConsole(options =>
+    {
+        options.IncludeScopes = true;
+        options.SingleLine = false;
+        options.TimestampFormat = "yyyy-MM-dd HH:mm:ss ";
+    }));
 var logger = loggerFactory.CreateLogger("RepairPlanner");
 var credential = new DefaultAzureCredential();
 using var cosmosDb = new CosmosDbService(
